@@ -22,6 +22,12 @@
 #import "FUISegmentedControl.h"
 #import "UIPopoverController+FlatUI.h"
 
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
 @interface ViewController () {
     UIPopoverController *_popoverController;
 }
@@ -41,8 +47,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 7) {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+    }
+    
     self.title = @"Flat UI";
     self.view.backgroundColor = [UIColor cloudsColor];
+    NSDictionary *attrs = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
+    [[UIBarItem appearance] setTitleTextAttributes:attrs
+                                                forState:UIControlStateNormal];
     [UIBarButtonItem configureFlatButtonsWithColor:[UIColor peterRiverColor]
                                   highlightedColor:[UIColor belizeHoleColor]
                                       cornerRadius:3
@@ -81,8 +95,15 @@
                                   disabledColor:[UIColor amethystColor]
                                       iconColor:[UIColor cloudsColor]];
     
-    self.navigationController.navigationBar.titleTextAttributes = @{UITextAttributeFont: [UIFont boldFlatFontOfSize:18],
+    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
+        self.navigationController.navigationBar.titleTextAttributes = @{NSFontAttributeName:[UIFont boldFlatFontOfSize:18],
+                                                                    NSForegroundColorAttributeName: [UIColor whiteColor]};
+    } else {
+        // Pre-iOS7 methods
+        self.navigationController.navigationBar.titleTextAttributes = @{UITextAttributeFont: [UIFont boldFlatFontOfSize:18],
                                                                     UITextAttributeTextColor: [UIColor whiteColor]};
+    }
+    
     [self.navigationController.navigationBar configureFlatNavigationBarWithColor:[UIColor midnightBlueColor]];
     
     self.flatSwitch.onColor = [UIColor turquoiseColor];
@@ -103,9 +124,10 @@
     self.flatSegmentedControl.selectedFontColor = [UIColor cloudsColor];
     self.flatSegmentedControl.deselectedFont = [UIFont flatFontOfSize:16];
     self.flatSegmentedControl.deselectedFontColor = [UIColor cloudsColor];
-    self.flatSegmentedControl.selectedColor = [UIColor amethystColor];
-    self.flatSegmentedControl.deselectedColor = [UIColor silverColor];
-    self.flatSegmentedControl.dividerColor = [UIColor midnightBlueColor];
+    self.flatSegmentedControl.selectedColor = [UIColor pumpkinColor];
+    self.flatSegmentedControl.deselectedColor = [UIColor tangerineColor];
+    self.flatSegmentedControl.disabledColor = [UIColor silverColor];
+    self.flatSegmentedControl.dividerColor = [UIColor silverColor];
     self.flatSegmentedControl.cornerRadius = 5.0;
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
@@ -121,6 +143,16 @@
 
 - (IBAction)showAlertView:(id)sender {
     FUIAlertView *alertView = [[FUIAlertView alloc] initWithTitle:@"Hello" message:@"This is an alert view" delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:@"Do Something", nil];
+    alertView.alertViewStyle = FUIAlertViewStylePlainTextInput;
+    [@[[alertView textFieldAtIndex:0], [alertView textFieldAtIndex:1]] enumerateObjectsUsingBlock:^(FUITextField *textField, NSUInteger idx, BOOL *stop) {
+        [textField setTextFieldColor:[UIColor cloudsColor]];
+        [textField setBorderColor:[UIColor asbestosColor]];
+        [textField setCornerRadius:4];
+        [textField setFont:[UIFont flatFontOfSize:14]];
+        [textField setTextColor:[UIColor midnightBlueColor]];
+    }];
+    [[alertView textFieldAtIndex:0] setPlaceholder:@"Text here!"];
+    
     alertView.delegate = self;
     alertView.titleLabel.textColor = [UIColor cloudsColor];
     alertView.titleLabel.font = [UIFont boldFlatFontOfSize:16];
@@ -139,11 +171,19 @@
     UIButton *button = (UIButton *)sender;
     
     UIViewController *vc = [[UIViewController alloc] init];
-    vc.contentSizeForViewInPopover = CGSizeMake(320, 480);
     vc.view.backgroundColor = [UIColor whiteColor];
     vc.title = @"FUIPopoverController";
-    vc.navigationController.navigationBar.titleTextAttributes = @{UITextAttributeFont: [UIFont boldFlatFontOfSize:18],
+    
+    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
+        vc.preferredContentSize = CGSizeMake(320, 480);
+        self.navigationController.navigationBar.titleTextAttributes = @{NSFontAttributeName:[UIFont boldFlatFontOfSize:18],
+                                                                        NSForegroundColorAttributeName: [UIColor whiteColor]};
+    } else {
+        // Pre-iOS7 methods
+        vc.contentSizeForViewInPopover = CGSizeMake(320, 480);
+        vc.navigationController.navigationBar.titleTextAttributes = @{UITextAttributeFont: [UIFont boldFlatFontOfSize:18],
                                                                   UITextAttributeTextColor: [UIColor whiteColor]};
+    }
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:vc];
     
